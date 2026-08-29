@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { cloneElement, useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
   Bell,
@@ -232,7 +232,6 @@ function Button({
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} />;
 }
-const ModalContext = createContext<() => void>(() => {});
 function Dialog({
   open,
   onOpenChange,
@@ -256,24 +255,24 @@ function Dialog({
     };
   }, [open, onOpenChange]);
   if (!open) return null;
-  return (
-    <ModalContext.Provider value={() => onOpenChange(false)}>
-      {children}
-    </ModalContext.Provider>
+  return cloneElement(
+    children as React.ReactElement<{ onClose?: () => void }>,
+    { onClose: () => onOpenChange(false) },
   );
 }
 function DialogContent({
   children,
   className = '',
+  onClose,
 }: {
   children: React.ReactNode;
   className?: string;
+  onClose?: () => void;
 }) {
-  const close = useContext(ModalContext);
   return (
     <div className="dialog-overlay">
       <dialog open aria-modal="true" className={`dialog-content ${className}`}>
-        <button className="dialog-close" onClick={close} aria-label="Close">
+        <button className="dialog-close" onClick={onClose} aria-label="Close">
           <X />
         </button>
         {children}
@@ -998,7 +997,10 @@ function Requirements({
           <div className="form-grid">
             <label htmlFor="requirement-title">
               Requirement title
-              <Input id="requirement-title" placeholder="e.g. Confirm warranty disclosure" />
+              <Input
+                id="requirement-title"
+                placeholder="e.g. Confirm warranty disclosure"
+              />
             </label>
             <label>
               Category
@@ -1017,7 +1019,11 @@ function Requirements({
             </label>
             <label htmlFor="requirement-date">
               Target date
-              <Input id="requirement-date" type="date" defaultValue="2026-09-30" />
+              <Input
+                id="requirement-date"
+                type="date"
+                defaultValue="2026-09-30"
+              />
             </label>
           </div>
           <DialogFooter>
